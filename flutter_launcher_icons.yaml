@@ -1,0 +1,8 @@
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/icon/icon.png" # あなたの画像へのパス
+  min_sdk_android: 21
+  remove_alpha_ios: true # iOSでは透明背景を持つアイコンが許可されていません
+  adaptive_icon_background: "#FFFFFF" # 背景色（テーマに合わせて調整）
+  # adaptive_icon_foreground: "assets/icon/icon_foreground.png" # Android用前景アイコン（任意）

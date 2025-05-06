@@ -144,21 +144,21 @@ class _MyHomePageState extends State<MyHomePage> {
           // 毎日のタスクセクション
           if (dailyTasks.isNotEmpty) ...[
             const SizedBox(height: 16),
-            _buildSectionHeader(AppLocalizations.of(context)!.dailyRoutine),
+            _buildSectionHeader(AppLocalizations.of(context)!.dailyTask),
             ...dailyTasks.map((task) => _buildTaskItem(task)),
           ],
 
           // 毎週のタスクセクション
           if (weeklyTasks.isNotEmpty) ...[
             const SizedBox(height: 16),
-            _buildSectionHeader(AppLocalizations.of(context)!.weeklyRoutine),
+            _buildSectionHeader(AppLocalizations.of(context)!.weeklyTask),
             ...weeklyTasks.map((task) => _buildTaskItem(task)),
           ],
 
           // 毎月のタスクセクション
           if (monthlyTasks.isNotEmpty) ...[
             const SizedBox(height: 16),
-            _buildSectionHeader(AppLocalizations.of(context)!.monthlyRoutine),
+            _buildSectionHeader(AppLocalizations.of(context)!.monthlyTask),
             ...monthlyTasks.map((task) => _buildTaskItem(task)),
           ],
         ],
@@ -324,7 +324,7 @@ class _SettingsPageState extends State<SettingsPage> {
           children: [
             // 毎日のタスクセクション
             _buildSectionHeader(
-              AppLocalizations.of(context)!.dailyRoutine,
+              AppLocalizations.of(context)!.dailyTask,
               () => _addTaskWithPeriod(TaskPeriod.daily),
             ),
             ...dailyTasks.asMap().entries.map(
@@ -337,7 +337,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
             // 毎週のタスクセクション
             _buildSectionHeader(
-              AppLocalizations.of(context)!.weeklyRoutine,
+              AppLocalizations.of(context)!.weeklyTask,
               () => _addTaskWithPeriod(TaskPeriod.weekly),
             ),
             ...weeklyTasks.asMap().entries.map(
@@ -350,7 +350,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
             // 毎月のタスクセクション
             _buildSectionHeader(
-              AppLocalizations.of(context)!.monthlyRoutine,
+              AppLocalizations.of(context)!.monthlyTask,
               () => _addTaskWithPeriod(TaskPeriod.monthly),
             ),
             ...monthlyTasks.asMap().entries.map(
