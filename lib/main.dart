@@ -229,96 +229,118 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('設定'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            // 空のタスクを削除
-            _editableTasks.removeWhere((task) => task.title.isEmpty);
-            // 変更をメイン画面に反映
-            widget.onTasksChanged(_editableTasks);
-            Navigator.pop(context);
+    return GestureDetector(
+      // 全体をGestureDetectorでラップ
+      onTap: () {
+        // 画面の任意の場所をタップしたら編集モードを終了
+        if (_editingIndex != null) {
+          setState(() {
+            _editingIndex = null;
+          });
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          title: const Text('設定'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              // 空のタスクを削除
+              _editableTasks.removeWhere((task) => task.title.isEmpty);
+              // 変更をメイン画面に反映
+              widget.onTasksChanged(_editableTasks);
+              Navigator.pop(context);
+            },
+          ),
+        ),
+        body: ListView.separated(
+          // builderからseparatedに変更
+          itemCount: _editableTasks.length,
+          // 区切り線の定義
+          separatorBuilder:
+              (context, index) => const Divider(
+                color: Colors.grey, // グレーの線
+                height: 1.0, // 線の表示上の高さ（スペース込み）
+                thickness: 0.5, // 線自体の太さ
+                indent: 16.0, // 左側の余白
+                endIndent: 16.0, // 右側の余白
+              ),
+          itemBuilder: (context, index) {
+            final isEditing = _editingIndex == index;
+
+            // ListTileの代わりにGestureDetector+Containerの組み合わせを使用
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  _editingIndex = index;
+                });
+              },
+              behavior: HitTestBehavior.opaque, // タップ検出を確実にする
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                height: 50.0, // 固定高さを設定
+                child: Row(
+                  children: [
+                    // タイトル部分（メインコンテンツ）
+                    Expanded(
+                      child: Container(
+                        alignment: Alignment.centerLeft, // 左寄せの中央揃え
+                        height: 30.0, // 固定高さを設定（親コンテナより小さく）
+                        child:
+                            isEditing
+                                // 編集モードの場合
+                                ? TextField(
+                                  autofocus: true,
+                                  controller: TextEditingController(
+                                    text: _editableTasks[index].title,
+                                  ),
+                                  style: commonTextStyle,
+                                  decoration: const InputDecoration(
+                                    isCollapsed: true, // これを追加！高さの制御が良くなります
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                    contentPadding: EdgeInsets.zero,
+                                  ),
+                                  onSubmitted: (value) {
+                                    setState(() {
+                                      if (value.isNotEmpty) {
+                                        _editableTasks[index].title = value;
+                                      }
+                                      _editingIndex = null;
+                                    });
+                                  },
+                                )
+                                // 表示モードの場合
+                                : Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    _editableTasks[index].title.isEmpty
+                                        ? '(タスク名を入力)'
+                                        : _editableTasks[index].title,
+                                    style: commonTextStyle,
+                                  ),
+                                ),
+                      ),
+                    ),
+
+                    // 削除ボタン
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      splashRadius: 20,
+                      onPressed: () => _deleteTask(index),
+                    ),
+                  ],
+                ),
+              ),
+            );
           },
         ),
-      ),
-      body: ListView.builder(
-        itemCount: _editableTasks.length,
-        itemBuilder: (context, index) {
-          final isEditing = _editingIndex == index;
-
-          // ListTileの代わりにGestureDetector+Containerの組み合わせを使用
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                _editingIndex = index;
-              });
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              height: 50.0, // 固定高さを設定
-              child: Row(
-                children: [
-                  // タイトル部分（メインコンテンツ）
-                  Expanded(
-                    child: Container(
-                      alignment: Alignment.centerLeft, // 左寄せの中央揃え
-                      height: 30.0, // 固定高さを設定（親コンテナより小さく）
-                      child:
-                          isEditing
-                              // 編集モードの場合
-                              ? TextField(
-                                autofocus: true,
-                                controller: TextEditingController(
-                                  text: _editableTasks[index].title,
-                                ),
-                                style: commonTextStyle,
-                                decoration: const InputDecoration(
-                                  isCollapsed: true, // これを追加！高さの制御が良くなります
-                                  border: InputBorder.none,
-                                  isDense: true,
-                                  contentPadding: EdgeInsets.zero,
-                                ),
-                                onSubmitted: (value) {
-                                  setState(() {
-                                    if (value.isNotEmpty) {
-                                      _editableTasks[index].title = value;
-                                    }
-                                    _editingIndex = null;
-                                  });
-                                },
-                              )
-                              // 表示モードの場合
-                              : Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  _editableTasks[index].title.isEmpty
-                                      ? '(タスク名を入力)'
-                                      : _editableTasks[index].title,
-                                  style: commonTextStyle,
-                                ),
-                              ),
-                    ),
-                  ),
-
-                  // 削除ボタン
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    splashRadius: 20,
-                    onPressed: () => _deleteTask(index),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addTask,
-        tooltip: 'タスクを追加',
-        child: const Icon(Icons.add),
+        floatingActionButton: FloatingActionButton(
+          onPressed: _addTask,
+          tooltip: 'タスクを追加',
+          child: const Icon(Icons.add),
+        ),
       ),
     );
   }
