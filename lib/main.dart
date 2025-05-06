@@ -67,10 +67,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // タスクリストを追加
   final List<Task> _tasks = [
-    Task('歯を磨く'),
-    Task('顔を洗う'),
-    Task('朝食を食べる'),
-    Task('準備をする'),
+    Task('歯を磨く', period: TaskPeriod.daily),
+    Task('顔を洗う', period: TaskPeriod.daily),
+    Task('朝食を食べる', period: TaskPeriod.daily),
+    Task('準備をする', period: TaskPeriod.daily),
+    // 追加でweeklyやmonthlyのタスクがあれば、それらも明示的に期間を指定
   ];
 
   void _incrementCounter() {
@@ -108,6 +109,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // 期間ごとにタスクをグループ化
+    final dailyTasks =
+        _tasks.where((task) => task.period == TaskPeriod.daily).toList();
+    final weeklyTasks =
+        _tasks.where((task) => task.period == TaskPeriod.weekly).toList();
+    final monthlyTasks =
+        _tasks.where((task) => task.period == TaskPeriod.monthly).toList();
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -119,7 +128,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
       ),
-      body: Column(
+      body: ListView(
         children: [
           // カウンター部分（既存のまま）
           Center(
@@ -135,50 +144,93 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
 
-          // タスクリスト（新規追加）
-          const SizedBox(height: 20),
-          const Text(
-            '朝のルーティン',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _tasks.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(
-                    _tasks[index].title,
-                    style: TextStyle(
-                      decoration:
-                          _tasks[index].isCompleted
-                              ? TextDecoration.lineThrough
-                              : null,
-                    ),
-                  ),
-                  leading: Checkbox(
-                    value: _tasks[index].isCompleted,
-                    onChanged: (_) => _toggleTaskCompletion(index),
-                  ),
-                );
-              },
-            ),
-          ),
+          // 毎日のタスクセクション
+          if (dailyTasks.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _buildSectionHeader('毎日のルーティン'),
+            ...dailyTasks.map((task) => _buildTaskItem(task)),
+          ],
+
+          // 毎週のタスクセクション
+          if (weeklyTasks.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _buildSectionHeader('毎週のルーティン'),
+            ...weeklyTasks.map((task) => _buildTaskItem(task)),
+          ],
+
+          // 毎月のタスクセクション
+          if (monthlyTasks.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _buildSectionHeader('毎月のルーティン'),
+            ...monthlyTasks.map((task) => _buildTaskItem(task)),
+          ],
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+        onPressed: _openSettings,
+        tooltip: '設定',
+        child: const Icon(Icons.settings),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
+      color: Colors.grey[100],
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: Colors.teal,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTaskItem(Task task) {
+    return Opacity(
+      // チェック済みのタスクは半透明表示
+      opacity: task.isCompleted ? 0.6 : 1.0,
+      child: ListTile(
+        title: Text(
+          task.title,
+          style: TextStyle(
+            // decoration: task.isCompleted ? TextDecoration.lineThrough : null, // 取り消し線を削除
+            color: task.isCompleted ? Colors.grey : Colors.black,
+          ),
+        ),
+        leading: Checkbox(
+          value: task.isCompleted,
+          // チェック済みの場合は操作不能に
+          onChanged:
+              task.isCompleted
+                  ? null // nullにすることでチェックボックスが無効化される
+                  : (_) => _toggleTaskCompletion(_tasks.indexOf(task)),
+        ),
+        // タップ操作も無効化
+        onTap:
+            task.isCompleted
+                ? null
+                : () {
+                  setState(() {
+                    _toggleTaskCompletion(_tasks.indexOf(task));
+                  });
+                },
       ),
     );
   }
 }
 
+enum TaskPeriod { daily, weekly, monthly }
+
 class Task {
   String title;
   bool isCompleted;
+  TaskPeriod? period; // nullを許容するよう?マークを追加
 
-  Task(this.title, {this.isCompleted = false});
+  Task(this.title, {this.isCompleted = false, this.period = TaskPeriod.daily});
 }
 
 // 設定ページ
@@ -205,9 +257,15 @@ class _SettingsPageState extends State<SettingsPage> {
     super.initState();
     // タスクのコピーを作成して編集可能にする
     _editableTasks =
-        widget.tasks
-            .map((task) => Task(task.title, isCompleted: task.isCompleted))
-            .toList();
+        widget.tasks.map((task) {
+          // nullチェックを追加
+          final TaskPeriod safePeriod = task.period ?? TaskPeriod.daily;
+          return Task(
+            task.title,
+            isCompleted: task.isCompleted,
+            period: safePeriod, // nullの場合はdailyをデフォルト値として使用
+          );
+        }).toList();
   }
 
   // 新しいタスクを追加
@@ -229,10 +287,24 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    // 期間ごとにタスクをグループ化
+    final dailyTasks =
+        _editableTasks
+            .where(
+              (task) => task.period == TaskPeriod.daily || task.period == null,
+            )
+            .toList();
+    final weeklyTasks =
+        _editableTasks
+            .where((task) => task.period == TaskPeriod.weekly)
+            .toList();
+    final monthlyTasks =
+        _editableTasks
+            .where((task) => task.period == TaskPeriod.monthly)
+            .toList();
+
     return GestureDetector(
-      // 全体をGestureDetectorでラップ
       onTap: () {
-        // 画面の任意の場所をタップしたら編集モードを終了
         if (_editingIndex != null) {
           setState(() {
             _editingIndex = null;
@@ -246,100 +318,166 @@ class _SettingsPageState extends State<SettingsPage> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
-              // 空のタスクを削除
               _editableTasks.removeWhere((task) => task.title.isEmpty);
-              // 変更をメイン画面に反映
               widget.onTasksChanged(_editableTasks);
               Navigator.pop(context);
             },
           ),
         ),
-        body: ListView.separated(
-          // builderからseparatedに変更
-          itemCount: _editableTasks.length,
-          // 区切り線の定義
-          separatorBuilder:
-              (context, index) => const Divider(
-                color: Colors.grey, // グレーの線
-                height: 1.0, // 線の表示上の高さ（スペース込み）
-                thickness: 0.5, // 線自体の太さ
-                indent: 16.0, // 左側の余白
-                endIndent: 16.0, // 右側の余白
+        body: ListView(
+          children: [
+            // 毎日のタスクセクション
+            _buildSectionHeader(
+              '毎日のルーティン',
+              () => _addTaskWithPeriod(TaskPeriod.daily),
+            ),
+            ...dailyTasks.asMap().entries.map(
+              (entry) => _buildTaskItem(
+                entry.value,
+                _editableTasks.indexOf(entry.value),
               ),
-          itemBuilder: (context, index) {
-            final isEditing = _editingIndex == index;
+            ),
+            const Divider(height: 1.0, thickness: 0.5),
 
-            // ListTileの代わりにGestureDetector+Containerの組み合わせを使用
-            return GestureDetector(
-              onTap: () {
+            // 毎週のタスクセクション
+            _buildSectionHeader(
+              '毎週のルーティン',
+              () => _addTaskWithPeriod(TaskPeriod.weekly),
+            ),
+            ...weeklyTasks.asMap().entries.map(
+              (entry) => _buildTaskItem(
+                entry.value,
+                _editableTasks.indexOf(entry.value),
+              ),
+            ),
+            const Divider(height: 1.0, thickness: 0.5),
+
+            // 毎月のタスクセクション
+            _buildSectionHeader(
+              '毎月のルーティン',
+              () => _addTaskWithPeriod(TaskPeriod.monthly),
+            ),
+            ...monthlyTasks.asMap().entries.map(
+              (entry) => _buildTaskItem(
+                entry.value,
+                _editableTasks.indexOf(entry.value),
+              ),
+            ),
+          ],
+        ),
+        // メインの+ボタンは削除してもOK（セクションごとに+ボタンがあるため）
+      ),
+    );
+  }
+
+  // セクションヘッダーを作成するヘルパーメソッド
+  Widget _buildSectionHeader(String title, VoidCallback onAddPressed) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
+      color: Colors.grey[100],
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.teal,
+              ),
+            ),
+          ),
+          // プラスボタン
+          IconButton(
+            icon: const Icon(Icons.add, color: Colors.teal),
+            splashRadius: 20,
+            onPressed: onAddPressed,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 指定した期間のタスクを追加
+  void _addTaskWithPeriod(TaskPeriod period) {
+    setState(() {
+      // 新しいタスクを指定の期間で作成
+      final newTask = Task('', period: period);
+      _editableTasks.add(newTask);
+      _editingIndex = _editableTasks.length - 1;
+    });
+  }
+
+  // タスクアイテムを作成するヘルパーメソッド
+  Widget _buildTaskItem(Task task, int index) {
+    final isEditing = _editingIndex == index;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _editingIndex = index;
+        });
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        height: 50.0,
+        child: Row(
+          children: [
+            // チェックボックスを追加
+            Checkbox(
+              value: task.isCompleted,
+              onChanged: (value) {
                 setState(() {
-                  _editingIndex = index;
+                  task.isCompleted = value ?? false;
                 });
               },
-              behavior: HitTestBehavior.opaque, // タップ検出を確実にする
+            ),
+            Expanded(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                height: 50.0, // 固定高さを設定
-                child: Row(
-                  children: [
-                    // タイトル部分（メインコンテンツ）
-                    Expanded(
-                      child: Container(
-                        alignment: Alignment.centerLeft, // 左寄せの中央揃え
-                        height: 30.0, // 固定高さを設定（親コンテナより小さく）
-                        child:
-                            isEditing
-                                // 編集モードの場合
-                                ? TextField(
-                                  autofocus: true,
-                                  controller: TextEditingController(
-                                    text: _editableTasks[index].title,
-                                  ),
-                                  style: commonTextStyle,
-                                  decoration: const InputDecoration(
-                                    isCollapsed: true, // これを追加！高さの制御が良くなります
-                                    border: InputBorder.none,
-                                    isDense: true,
-                                    contentPadding: EdgeInsets.zero,
-                                  ),
-                                  onSubmitted: (value) {
-                                    setState(() {
-                                      if (value.isNotEmpty) {
-                                        _editableTasks[index].title = value;
-                                      }
-                                      _editingIndex = null;
-                                    });
-                                  },
-                                )
-                                // 表示モードの場合
-                                : Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    _editableTasks[index].title.isEmpty
-                                        ? '(タスク名を入力)'
-                                        : _editableTasks[index].title,
-                                    style: commonTextStyle,
-                                  ),
-                                ),
-                      ),
-                    ),
-
-                    // 削除ボタン
-                    IconButton(
-                      icon: const Icon(Icons.delete),
-                      splashRadius: 20,
-                      onPressed: () => _deleteTask(index),
-                    ),
-                  ],
-                ),
+                alignment: Alignment.centerLeft,
+                height: 30.0,
+                child:
+                    isEditing
+                        ? TextField(
+                          autofocus: true,
+                          controller: TextEditingController(text: task.title),
+                          style: commonTextStyle,
+                          decoration: const InputDecoration(
+                            isCollapsed: true,
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          onChanged: (value) {
+                            // テキスト変更時にリアルタイムでタイトルを更新
+                            task.title = value;
+                          },
+                          onSubmitted: (value) {
+                            setState(() {
+                              _editingIndex = null;
+                            });
+                          },
+                        )
+                        : Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            task.title.isEmpty ? '(タスク名を入力)' : task.title,
+                            style: TextStyle(
+                              // decoration: task.isCompleted ? TextDecoration.lineThrough : null, // 取り消し線を削除
+                              color:
+                                  task.isCompleted ? Colors.grey : Colors.black,
+                            ).merge(commonTextStyle),
+                          ),
+                        ),
               ),
-            );
-          },
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: _addTask,
-          tooltip: 'タスクを追加',
-          child: const Icon(Icons.add),
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete),
+              splashRadius: 20,
+              onPressed: () => _deleteTask(index),
+            ),
+          ],
         ),
       ),
     );
