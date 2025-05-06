@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
         Locale('ja', ''), // 日本語
       ],
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'Task Cycle',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -52,7 +52,7 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
       ),
-      home: const MyHomePage(title: 'Morning Routine'),
+      home: const MyHomePage(title: 'Task Cycle'),
     );
   }
 }
@@ -131,6 +131,7 @@ class _MyHomePageState extends State<MyHomePage> {
             fontWeight: FontWeight.bold, // 太字設定を追加
           ),
         ),
+        toolbarHeight: 44.0, // 高さを44に設定
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -309,6 +310,7 @@ class _SettingsPageState extends State<SettingsPage> {
             AppLocalizations.of(context)!.settings,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
+          toolbarHeight: 44.0, // 高さを44に設定
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
