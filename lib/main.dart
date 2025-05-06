@@ -63,8 +63,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
   // タスクリストを追加
   final List<Task> _tasks = [
     Task('歯を磨く', period: TaskPeriod.daily),
@@ -73,12 +71,6 @@ class _MyHomePageState extends State<MyHomePage> {
     Task('準備をする', period: TaskPeriod.daily),
     // 追加でweeklyやmonthlyのタスクがあれば、それらも明示的に期間を指定
   ];
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
 
   // タスクの完了状態を切り替える関数
   void _toggleTaskCompletion(int index) {
@@ -130,20 +122,6 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: ListView(
         children: [
-          // カウンター部分（既存のまま）
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                const Text('You have pushed the button this many times:'),
-                Text(
-                  '$_counter',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-              ],
-            ),
-          ),
-
           // 毎日のタスクセクション
           if (dailyTasks.isNotEmpty) ...[
             const SizedBox(height: 16),
@@ -165,11 +143,6 @@ class _MyHomePageState extends State<MyHomePage> {
             ...monthlyTasks.map((task) => _buildTaskItem(task)),
           ],
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _openSettings,
-        tooltip: '設定',
-        child: const Icon(Icons.settings),
       ),
     );
   }
