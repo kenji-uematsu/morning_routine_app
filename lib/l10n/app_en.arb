@@ -1,0 +1,8 @@
+{
+  "appTitle": "Morning Routine",
+  "dailyRoutine": "Daily Routine", 
+  "weeklyRoutine": "Weekly Routine",
+  "monthlyRoutine": "Monthly Routine",
+  "settings": "Settings",
+  "inputTaskName": "(Enter task name)"
+}

@@ -1,0 +1,8 @@
+{
+  "appTitle": "モーニングルーティン",
+  "dailyRoutine": "毎日のルーティン", 
+  "weeklyRoutine": "毎週のルーティン",
+  "monthlyRoutine": "毎月のルーティン",
+  "settings": "設定",
+  "inputTaskName": "(タスク名を入力)"
+}

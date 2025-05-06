@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 void main() {
   runApp(const MyApp());
@@ -19,6 +21,17 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      // 多言語対応の設定
+      localizationsDelegates: const [
+        AppLocalizations.delegate, // 自動生成されるクラス
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en', ''), // 英語
+        Locale('ja', ''), // 日本語
+      ],
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
@@ -112,7 +125,12 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        title: Text(
+          AppLocalizations.of(context)!.appTitle,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold, // 太字設定を追加
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -125,21 +143,21 @@ class _MyHomePageState extends State<MyHomePage> {
           // 毎日のタスクセクション
           if (dailyTasks.isNotEmpty) ...[
             const SizedBox(height: 16),
-            _buildSectionHeader('毎日のルーティン'),
+            _buildSectionHeader(AppLocalizations.of(context)!.dailyRoutine),
             ...dailyTasks.map((task) => _buildTaskItem(task)),
           ],
 
           // 毎週のタスクセクション
           if (weeklyTasks.isNotEmpty) ...[
             const SizedBox(height: 16),
-            _buildSectionHeader('毎週のルーティン'),
+            _buildSectionHeader(AppLocalizations.of(context)!.weeklyRoutine),
             ...weeklyTasks.map((task) => _buildTaskItem(task)),
           ],
 
           // 毎月のタスクセクション
           if (monthlyTasks.isNotEmpty) ...[
             const SizedBox(height: 16),
-            _buildSectionHeader('毎月のルーティン'),
+            _buildSectionHeader(AppLocalizations.of(context)!.monthlyRoutine),
             ...monthlyTasks.map((task) => _buildTaskItem(task)),
           ],
         ],
@@ -287,7 +305,10 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: const Text('設定'),
+          title: Text(
+            AppLocalizations.of(context)!.settings,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
@@ -301,7 +322,7 @@ class _SettingsPageState extends State<SettingsPage> {
           children: [
             // 毎日のタスクセクション
             _buildSectionHeader(
-              '毎日のルーティン',
+              AppLocalizations.of(context)!.dailyRoutine,
               () => _addTaskWithPeriod(TaskPeriod.daily),
             ),
             ...dailyTasks.asMap().entries.map(
@@ -314,7 +335,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
             // 毎週のタスクセクション
             _buildSectionHeader(
-              '毎週のルーティン',
+              AppLocalizations.of(context)!.weeklyRoutine,
               () => _addTaskWithPeriod(TaskPeriod.weekly),
             ),
             ...weeklyTasks.asMap().entries.map(
@@ -327,7 +348,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
             // 毎月のタスクセクション
             _buildSectionHeader(
-              '毎月のルーティン',
+              AppLocalizations.of(context)!.monthlyRoutine,
               () => _addTaskWithPeriod(TaskPeriod.monthly),
             ),
             ...monthlyTasks.asMap().entries.map(
@@ -435,7 +456,9 @@ class _SettingsPageState extends State<SettingsPage> {
                         : Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            task.title.isEmpty ? '(タスク名を入力)' : task.title,
+                            task.title.isEmpty
+                                ? AppLocalizations.of(context)!.inputTaskName
+                                : task.title, // '(タスク名を入力)'から変更
                             style: TextStyle(
                               // decoration: task.isCompleted ? TextDecoration.lineThrough : null, // 取り消し線を削除
                               color:
