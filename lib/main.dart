@@ -99,6 +99,10 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     super.initState();
     // アプリのライフサイクル監視を開始
     WidgetsBinding.instance.addObserver(this);
+
+    // 初回起動チェックを追加
+    _checkFirstLaunch();
+
     // 起動時に一度チェック
     _loadTasks().then((_) {
       _checkAndResetTasks();
@@ -280,6 +284,130 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     );
   }
 
+  // リセットの説明ダイアログを表示する関数
+  void _showResetExplanationDialog() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text(AppLocalizations.of(context)!.appTitle),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(AppLocalizations.of(context)!.dailyTask),
+                Text(
+                  '→ 毎日0時にリセット',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
+                const SizedBox(height: 8),
+
+                Text(AppLocalizations.of(context)!.weeklyTask),
+                Text(
+                  '→ 毎週月曜0時にリセット',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
+                const SizedBox(height: 8),
+
+                Text(AppLocalizations.of(context)!.monthlyTask),
+                Text(
+                  '→ 毎月1日0時にリセット',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                child: Text('OK'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+    );
+  }
+
+  // アプリの説明ダイアログを表示する関数
+  void _showAppExplanationDialog() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text(
+              Localizations.localeOf(context).languageCode == 'ja'
+                  ? 'このアプリについて'
+                  : 'About This App', // 変更なし
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  Localizations.localeOf(context).languageCode == 'ja'
+                      ? '【主な使い方】'
+                      : '[Main Features]', // 変更なし
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  Localizations.localeOf(context).languageCode == 'ja'
+                      ? '繰り返し実行するタスクの消化状況を管理するアプリです。'
+                      : 'This app helps you manage tasks.', // 修正：日本語に合わせて簡潔に
+                  style: TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 12),
+
+                Text(
+                  Localizations.localeOf(context).languageCode == 'ja'
+                      ? '【自動リセット機能】'
+                      : '[Auto Reset Feature]', // 変更なし
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  Localizations.localeOf(context).languageCode == 'ja'
+                      ? '消化したタスクはそれぞれ以下のタイミングでリセットされて未消化の状態に戻ります。\n・毎日のタスク: 毎日0時にリセット\n・毎週のタスク: 毎週月曜0時にリセット\n・毎月のタスク: 毎月1日0時にリセット'
+                      : 'Completed tasks will be automatically reset to incomplete status at the following times:\n・Daily tasks: Reset at midnight every day\n・Weekly tasks: Reset at midnight every Monday\n・Monthly tasks: Reset at midnight on the first day of each month', // 修正：「消化したタスク」の意味を正確に翻訳
+                  style: TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 12),
+
+                Text(
+                  Localizations.localeOf(context).languageCode == 'ja'
+                      ? '【タスクの追加・編集・削除の方法】'
+                      : '[Task Management]', // 変更なし
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  Localizations.localeOf(context).languageCode == 'ja'
+                      ? '右上の設定アイコンから設定画面に進むことでタスクの追加・編集・削除ができます。'
+                      : 'To add, edit, or delete tasks, go to the settings screen by tapping the settings icon in the top-right corner.', // 修正：より自然な表現に
+                  style: TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                child: Text('OK'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+    );
+  }
+
+  // 初回起動時のチェック
+  Future<void> _checkFirstLaunch() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool isFirstLaunch = prefs.getBool('first_launch') ?? true;
+
+    if (isFirstLaunch) {
+      // UIが構築された後にダイアログを表示
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showAppExplanationDialog(); // メソッド名を変更
+      });
+      // 初回フラグを更新
+      await prefs.setBool('first_launch', false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // 期間ごとにタスクをグループ化
@@ -301,15 +429,25 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         ),
         toolbarHeight: 44.0, // 高さを44に設定
         actions: [
-          // デバッグ用リセットボタン
+          // デバッグ用リセットボタン（デバッグモード時のみ表示）
+          if (_debugModeEnabled)
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'Debug Reset',
+              onPressed: () {
+                _forceResetTasks();
+              },
+            ),
+          // 情報アイコン
           IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Debug Reset',
-            onPressed: () {
-              _forceResetTasks(); // 強制的にリセット
-            },
+            icon: const Icon(Icons.info_outline),
+            tooltip:
+                Localizations.localeOf(context).languageCode == 'ja'
+                    ? 'アプリの使い方'
+                    : 'How to Use',
+            onPressed: _showAppExplanationDialog, // メソッド名も変更
           ),
-          // 既存の設定ボタン
+          // 設定アイコン
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: _openSettings,
