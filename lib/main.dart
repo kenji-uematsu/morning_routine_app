@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+// 必要なimportを追加
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
+import 'dart:async';
 
 void main() {
   runApp(const MyApp());
@@ -75,7 +79,10 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
+  // デバッグモードを制御するフラグ
+  static const bool _debugModeEnabled = false; // falseに設定するとデバッグ機能が無効になる
+
   // タスクリストを追加
   final List<Task> _tasks = [
     Task('歯を磨く', period: TaskPeriod.daily),
@@ -85,6 +92,120 @@ class _MyHomePageState extends State<MyHomePage> {
     // 追加でweeklyやmonthlyのタスクがあれば、それらも明示的に期間を指定
   ];
 
+  Timer? _checkTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // アプリのライフサイクル監視を開始
+    WidgetsBinding.instance.addObserver(this);
+    // 起動時に一度チェック
+    _loadTasks().then((_) {
+      _checkAndResetTasks();
+    });
+    // 定期的な確認タイマーを開始（1分ごと）
+    _startCheckTimer();
+  }
+
+  @override
+  void dispose() {
+    _checkTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  void _startCheckTimer() {
+    // 1分ごとにチェック
+    _checkTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      _checkAndResetTasks();
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // バックグラウンドから復帰時にもチェック
+    if (state == AppLifecycleState.resumed) {
+      _checkAndResetTasks();
+    }
+  }
+
+  // タスクのリセットが必要かチェックし、必要ならリセットする関数
+  Future<void> _checkAndResetTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastResetDate = prefs.getString('last_reset_date') ?? '';
+    final now = DateTime.now();
+    final today = DateFormat('yyyy-MM-dd').format(now);
+
+    // デバッグ用: 特定の時刻（例：毎時xx分）でリセットさせる
+    final bool debugTimeReset =
+        _debugModeEnabled && now.minute == 3; // 例：毎時30分にリセット
+
+    // 日付が変わった場合またはデバッグトリガーが発動した場合
+    if (lastResetDate != today || debugTimeReset) {
+      print("Resetting tasks! Debug trigger: $debugTimeReset");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('All tasks reset for debugging')),
+      );
+
+      // 毎日のタスクは毎日リセット
+      _resetDailyTasks();
+
+      // 毎週のタスクは月曜日にリセット (デバッグ中は常にリセットも可能)
+      if (now.weekday == DateTime.monday || debugTimeReset) {
+        _resetWeeklyTasks();
+      }
+
+      // 毎月のタスクは1日にリセット (デバッグ中は常にリセットも可能)
+      if (now.day == 1 || debugTimeReset) {
+        _resetMonthlyTasks();
+      }
+
+      // デバッグトリガーの場合は特別なキーを使用
+      if (debugTimeReset) {
+        await prefs.setString(
+          'debug_last_reset',
+          DateFormat('yyyy-MM-dd HH:mm').format(now),
+        );
+      } else {
+        // 通常のリセット日を更新
+        await prefs.setString('last_reset_date', today);
+      }
+    }
+  }
+
+  // 毎日のタスクをリセットする関数
+  void _resetDailyTasks() {
+    setState(() {
+      for (var task in _tasks) {
+        if (task.period == TaskPeriod.daily) {
+          task.isCompleted = false;
+        }
+      }
+    });
+  }
+
+  // 毎週のタスクをリセットする関数
+  void _resetWeeklyTasks() {
+    setState(() {
+      for (var task in _tasks) {
+        if (task.period == TaskPeriod.weekly) {
+          task.isCompleted = false;
+        }
+      }
+    });
+  }
+
+  // 毎月のタスクをリセットする関数
+  void _resetMonthlyTasks() {
+    setState(() {
+      for (var task in _tasks) {
+        if (task.period == TaskPeriod.monthly) {
+          task.isCompleted = false;
+        }
+      }
+    });
+  }
+
   // タスクの完了状態を切り替える関数
   void _toggleTaskCompletion(int index) {
     setState(() {
@@ -92,12 +213,49 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  // タスクリストを更新する関数
-  void _updateTasks(List<Task> newTasks) {
+  // タスクリストを更新する関数（永続化含む）
+  Future<void> _updateTasks(List<Task> newTasks) async {
     setState(() {
       _tasks.clear();
       _tasks.addAll(newTasks);
     });
+
+    // タスクの状態を保存
+    await _saveTasks();
+  }
+
+  // タスクをSharedPreferencesに保存
+  Future<void> _saveTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> taskData =
+        _tasks.map((task) {
+          return '${task.title}|${task.isCompleted}|${task.period?.index ?? 0}';
+        }).toList();
+
+    await prefs.setStringList('tasks', taskData);
+  }
+
+  // アプリ起動時にタスクを読み込む
+  Future<void> _loadTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    final taskData = prefs.getStringList('tasks');
+
+    if (taskData != null && taskData.isNotEmpty) {
+      setState(() {
+        _tasks.clear();
+        for (String data in taskData) {
+          final parts = data.split('|');
+          if (parts.length >= 3) {
+            final title = parts[0];
+            final isCompleted = parts[1] == 'true';
+            final periodIndex = int.tryParse(parts[2]) ?? 0;
+            final period = TaskPeriod.values[periodIndex];
+
+            _tasks.add(Task(title, isCompleted: isCompleted, period: period));
+          }
+        }
+      });
+    }
   }
 
   // 設定ページへ移動
@@ -109,6 +267,16 @@ class _MyHomePageState extends State<MyHomePage> {
             (context) =>
                 SettingsPage(tasks: _tasks, onTasksChanged: _updateTasks),
       ),
+    );
+  }
+
+  // 強制的にタスクをリセットする関数
+  void _forceResetTasks() {
+    _resetDailyTasks();
+    _resetWeeklyTasks();
+    _resetMonthlyTasks();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('All tasks reset for debugging')),
     );
   }
 
@@ -133,6 +301,15 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         toolbarHeight: 44.0, // 高さを44に設定
         actions: [
+          // デバッグ用リセットボタン
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Debug Reset',
+            onPressed: () {
+              _forceResetTasks(); // 強制的にリセット
+            },
+          ),
+          // 既存の設定ボタン
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: _openSettings,
