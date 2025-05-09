@@ -21,7 +21,6 @@ final TextStyle commonTextStyle = const TextStyle(
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -39,21 +38,6 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Task Cycle',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
       ),
       home: const MyHomePage(title: 'Task Cycle'),
@@ -64,15 +48,6 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
 
   @override
@@ -80,9 +55,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
-  // デバッグモードを制御するフラグ
-  static const bool _debugModeEnabled = false; // falseに設定するとデバッグ機能が無効になる
-
   // タスクリストを追加
   final List<Task> _tasks = [
     Task('歯を磨く', period: TaskPeriod.daily),
@@ -136,44 +108,30 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   // タスクのリセットが必要かチェックし、必要ならリセットする関数
   Future<void> _checkAndResetTasks() async {
     final prefs = await SharedPreferences.getInstance();
-    final lastResetDate = prefs.getString('last_reset_date') ?? '';
+    final String lastResetDateStr = prefs.getString('last_reset_date') ?? '';
+    final DateTime lastResetDate =
+        lastResetDateStr.isEmpty
+            ? DateTime(2000) // デフォルト値として過去の日付
+            : DateTime.parse(lastResetDateStr);
     final now = DateTime.now();
     final today = DateFormat('yyyy-MM-dd').format(now);
 
-    // デバッグ用: 特定の時刻（例：毎時xx分）でリセットさせる
-    final bool debugTimeReset =
-        _debugModeEnabled && now.minute == 3; // 例：毎時30分にリセット
-
-    // 日付が変わった場合またはデバッグトリガーが発動した場合
-    if (lastResetDate != today || debugTimeReset) {
-      print("Resetting tasks! Debug trigger: $debugTimeReset");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('All tasks reset for debugging')),
-      );
-
-      // 毎日のタスクは毎日リセット
+    // 日付が変わった場合
+    if (lastResetDateStr != today) {
       _resetDailyTasks();
 
-      // 毎週のタスクは月曜日にリセット (デバッグ中は常にリセットも可能)
-      if (now.weekday == DateTime.monday || debugTimeReset) {
+      // 毎週のタスクは月曜日にリセット
+      if (now.weekday == DateTime.monday) {
         _resetWeeklyTasks();
       }
 
-      // 毎月のタスクは1日にリセット (デバッグ中は常にリセットも可能)
-      if (now.day == 1 || debugTimeReset) {
+      // 毎月のタスクは1日にリセット
+      if (now.day == 1) {
         _resetMonthlyTasks();
       }
 
-      // デバッグトリガーの場合は特別なキーを使用
-      if (debugTimeReset) {
-        await prefs.setString(
-          'debug_last_reset',
-          DateFormat('yyyy-MM-dd HH:mm').format(now),
-        );
-      } else {
-        // 通常のリセット日を更新
-        await prefs.setString('last_reset_date', today);
-      }
+      // 通常のリセット日を更新
+      await prefs.setString('last_reset_date', today);
     }
   }
 
@@ -274,58 +232,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     );
   }
 
-  // 強制的にタスクをリセットする関数
-  void _forceResetTasks() {
-    _resetDailyTasks();
-    _resetWeeklyTasks();
-    _resetMonthlyTasks();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('All tasks reset for debugging')),
-    );
-  }
-
-  // リセットの説明ダイアログを表示する関数
-  void _showResetExplanationDialog() {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text(AppLocalizations.of(context)!.appTitle),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(AppLocalizations.of(context)!.dailyTask),
-                Text(
-                  '→ 毎日0時にリセット',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                ),
-                const SizedBox(height: 8),
-
-                Text(AppLocalizations.of(context)!.weeklyTask),
-                Text(
-                  '→ 毎週月曜0時にリセット',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                ),
-                const SizedBox(height: 8),
-
-                Text(AppLocalizations.of(context)!.monthlyTask),
-                Text(
-                  '→ 毎月1日0時にリセット',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                child: Text('OK'),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-    );
-  }
-
   // アプリの説明ダイアログを表示する関数
   void _showAppExplanationDialog() {
     showDialog(
@@ -411,15 +317,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         ),
         toolbarHeight: 44.0,
         actions: [
-          // デバッグ用リセットボタン（デバッグモード時のみ表示）
-          if (_debugModeEnabled)
-            IconButton(
-              icon: const Icon(Icons.refresh, color: Colors.black),
-              tooltip: 'Debug Reset',
-              onPressed: () {
-                _forceResetTasks();
-              },
-            ),
           // 設定アイコンのみ残す（情報アイコンを削除）
           IconButton(
             icon: const Icon(Icons.settings, color: Colors.black),
