@@ -13,5 +13,7 @@
   "taskManagementHeader": "[Task Management]",
   "taskManagementDescription": "To add, edit, or delete tasks, go to the settings screen by tapping the settings icon in the top-right corner.",
   "okButton": "OK",
-  "howToUse": "How to Use"
+  "howToUse": "How to Use",
+  "homeScreenTitle": "Task Checklist",
+  "settingsScreenTitle": "Task Management"
 }

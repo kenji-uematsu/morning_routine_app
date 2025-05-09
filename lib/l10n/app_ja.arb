@@ -13,5 +13,7 @@
   "taskManagementHeader": "【タスクの追加・編集・削除の方法】",
   "taskManagementDescription": "右上の設定アイコンから設定画面に進むことでタスクの追加・編集・削除ができます。",
   "okButton": "OK",
-  "howToUse": "アプリの使い方"
+  "howToUse": "アプリの使い方",
+  "homeScreenTitle": "タスクのチェック",
+  "settingsScreenTitle": "タスクの登録・編集"
 }

@@ -406,7 +406,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(
-          AppLocalizations.of(context)!.appTitle,
+          AppLocalizations.of(context)!.homeScreenTitle, // appTitleから変更
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         toolbarHeight: 44.0,
@@ -646,10 +646,10 @@ class _SettingsPageState extends State<SettingsPage> {
         appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           title: Text(
-            AppLocalizations.of(context)!.settings,
+            AppLocalizations.of(context)!.settingsScreenTitle, // settingsから変更
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          toolbarHeight: 44.0, // 高さを44に設定
+          toolbarHeight: 44.0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.black), // 色を追加
             onPressed: () {
