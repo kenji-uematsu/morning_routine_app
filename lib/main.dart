@@ -332,60 +332,44 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: Text(
-              Localizations.localeOf(context).languageCode == 'ja'
-                  ? 'このアプリについて'
-                  : 'About This App', // 変更なし
-            ),
+            title: Text(AppLocalizations.of(context)!.aboutAppTitle),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  Localizations.localeOf(context).languageCode == 'ja'
-                      ? '【主な使い方】'
-                      : '[Main Features]', // 変更なし
+                  AppLocalizations.of(context)!.mainFeaturesHeader,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  Localizations.localeOf(context).languageCode == 'ja'
-                      ? '繰り返し実行するタスクの消化状況を管理するアプリです。'
-                      : 'This app helps you manage tasks.', // 修正：日本語に合わせて簡潔に
+                  AppLocalizations.of(context)!.mainFeaturesDescription,
                   style: TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 12),
 
                 Text(
-                  Localizations.localeOf(context).languageCode == 'ja'
-                      ? '【自動リセット機能】'
-                      : '[Auto Reset Feature]', // 変更なし
+                  AppLocalizations.of(context)!.autoResetHeader,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  Localizations.localeOf(context).languageCode == 'ja'
-                      ? '消化したタスクはそれぞれ以下のタイミングでリセットされて未消化の状態に戻ります。\n・毎日のタスク: 毎日0時にリセット\n・毎週のタスク: 毎週月曜0時にリセット\n・毎月のタスク: 毎月1日0時にリセット'
-                      : 'Completed tasks will be automatically reset to incomplete status at the following times:\n・Daily tasks: Reset at midnight every day\n・Weekly tasks: Reset at midnight every Monday\n・Monthly tasks: Reset at midnight on the first day of each month', // 修正：「消化したタスク」の意味を正確に翻訳
+                  AppLocalizations.of(context)!.autoResetDescription,
                   style: TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 12),
 
                 Text(
-                  Localizations.localeOf(context).languageCode == 'ja'
-                      ? '【タスクの追加・編集・削除の方法】'
-                      : '[Task Management]', // 変更なし
+                  AppLocalizations.of(context)!.taskManagementHeader,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  Localizations.localeOf(context).languageCode == 'ja'
-                      ? '右上の設定アイコンから設定画面に進むことでタスクの追加・編集・削除ができます。'
-                      : 'To add, edit, or delete tasks, go to the settings screen by tapping the settings icon in the top-right corner.', // 修正：より自然な表現に
+                  AppLocalizations.of(context)!.taskManagementDescription,
                   style: TextStyle(fontSize: 14),
                 ),
               ],
             ),
             actions: [
               TextButton(
-                child: Text('OK'),
+                child: Text(AppLocalizations.of(context)!.okButton),
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ],
@@ -432,7 +416,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           // デバッグ用リセットボタン（デバッグモード時のみ表示）
           if (_debugModeEnabled)
             IconButton(
-              icon: const Icon(Icons.refresh),
+              icon: const Icon(Icons.refresh, color: Colors.teal), // 色を追加
               tooltip: 'Debug Reset',
               onPressed: () {
                 _forceResetTasks();
@@ -440,16 +424,13 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             ),
           // 情報アイコン
           IconButton(
-            icon: const Icon(Icons.info_outline),
-            tooltip:
-                Localizations.localeOf(context).languageCode == 'ja'
-                    ? 'アプリの使い方'
-                    : 'How to Use',
-            onPressed: _showAppExplanationDialog, // メソッド名も変更
+            icon: const Icon(Icons.info_outline, color: Colors.teal), // 色を追加
+            tooltip: AppLocalizations.of(context)!.howToUse,
+            onPressed: _showAppExplanationDialog,
           ),
           // 設定アイコン
           IconButton(
-            icon: const Icon(Icons.settings),
+            icon: const Icon(Icons.settings, color: Colors.teal), // 色を追加
             onPressed: _openSettings,
           ),
         ],

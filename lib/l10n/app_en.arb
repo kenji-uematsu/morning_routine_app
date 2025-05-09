@@ -4,5 +4,14 @@
   "weeklyTask": "Weekly Task",
   "monthlyTask": "Monthly Task",
   "settings": "Settings",
-  "inputTaskName": "(Enter task name)"
+  "inputTaskName": "(Enter task name)",
+  "aboutAppTitle": "About This App",
+  "mainFeaturesHeader": "[Main Features]",
+  "mainFeaturesDescription": "This app helps you manage tasks that repeat daily, weekly, and monthly.",
+  "autoResetHeader": "[Auto Reset Feature]",
+  "autoResetDescription": "Completed tasks will be automatically reset to incomplete status at the following times:\n・Daily tasks: Reset at midnight every day\n・Weekly tasks: Reset at midnight every Monday\n・Monthly tasks: Reset at midnight on the first day of each month",
+  "taskManagementHeader": "[Task Management]",
+  "taskManagementDescription": "To add, edit, or delete tasks, go to the settings screen by tapping the settings icon in the top-right corner.",
+  "okButton": "OK",
+  "howToUse": "How to Use"
 }

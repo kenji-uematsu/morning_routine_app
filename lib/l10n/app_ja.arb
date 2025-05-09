@@ -4,5 +4,14 @@
   "weeklyTask": "毎週のタスク",
   "monthlyTask": "毎月のタスク",
   "settings": "設定",
-  "inputTaskName": "(タスク名を入力)"
+  "inputTaskName": "(タスク名を入力)",
+  "aboutAppTitle": "このアプリについて",
+  "mainFeaturesHeader": "【主な使い方】",
+  "mainFeaturesDescription": "繰り返し実行するタスクの消化状況を管理するアプリです。",
+  "autoResetHeader": "【自動リセット機能】",
+  "autoResetDescription": "消化したタスクはそれぞれ以下のタイミングでリセットされて未消化の状態に戻ります。\n・毎日のタスク: 毎日0時にリセット\n・毎週のタスク: 毎週月曜0時にリセット\n・毎月のタスク: 毎月1日0時にリセット",
+  "taskManagementHeader": "【タスクの追加・編集・削除の方法】",
+  "taskManagementDescription": "右上の設定アイコンから設定画面に進むことでタスクの追加・編集・削除ができます。",
+  "okButton": "OK",
+  "howToUse": "アプリの使い方"
 }
