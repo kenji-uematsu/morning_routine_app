@@ -407,32 +407,25 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(
           AppLocalizations.of(context)!.appTitle,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold, // 太字設定を追加
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        toolbarHeight: 44.0, // 高さを44に設定
+        toolbarHeight: 44.0,
         actions: [
           // デバッグ用リセットボタン（デバッグモード時のみ表示）
           if (_debugModeEnabled)
             IconButton(
-              icon: const Icon(Icons.refresh, color: Colors.teal), // 色を追加
+              icon: const Icon(Icons.refresh, color: Colors.black),
               tooltip: 'Debug Reset',
               onPressed: () {
                 _forceResetTasks();
               },
             ),
-          // 情報アイコン
+          // 設定アイコンのみ残す（情報アイコンを削除）
           IconButton(
-            icon: const Icon(Icons.info_outline, color: Colors.teal), // 色を追加
-            tooltip: AppLocalizations.of(context)!.howToUse,
-            onPressed: _showAppExplanationDialog,
-          ),
-          // 設定アイコン
-          IconButton(
-            icon: const Icon(Icons.settings, color: Colors.teal), // 色を追加
+            icon: const Icon(Icons.settings, color: Colors.black),
             onPressed: _openSettings,
           ),
+          // 情報アイコンは削除
         ],
       ),
       body: ListView(
@@ -573,6 +566,56 @@ class _SettingsPageState extends State<SettingsPage> {
     });
   }
 
+  void _showAppExplanationDialog() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text(AppLocalizations.of(context)!.aboutAppTitle),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppLocalizations.of(context)!.mainFeaturesHeader,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  AppLocalizations.of(context)!.mainFeaturesDescription,
+                  style: TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 12),
+
+                Text(
+                  AppLocalizations.of(context)!.autoResetHeader,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  AppLocalizations.of(context)!.autoResetDescription,
+                  style: TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 12),
+
+                Text(
+                  AppLocalizations.of(context)!.taskManagementHeader,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  AppLocalizations.of(context)!.taskManagementDescription,
+                  style: TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                child: Text(AppLocalizations.of(context)!.okButton),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // 期間ごとにタスクをグループ化
@@ -608,13 +651,21 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           toolbarHeight: 44.0, // 高さを44に設定
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back, color: Colors.black), // 色を追加
             onPressed: () {
               _editableTasks.removeWhere((task) => task.title.isEmpty);
               widget.onTasksChanged(_editableTasks);
               Navigator.pop(context);
             },
           ),
+          actions: [
+            // 情報アイコンを追加
+            IconButton(
+              icon: const Icon(Icons.info_outline, color: Colors.black),
+              tooltip: AppLocalizations.of(context)!.howToUse,
+              onPressed: _showAppExplanationDialog, // 直接クラス内のメソッドを呼び出す
+            ),
+          ],
         ),
         body: ListView(
           children: [
@@ -681,7 +732,10 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           // プラスボタン
           IconButton(
-            icon: const Icon(Icons.add, color: Colors.teal),
+            icon: const Icon(
+              Icons.add,
+              color: Colors.black,
+            ), // teal → black に変更
             splashRadius: 20,
             onPressed: onAddPressed,
           ),
