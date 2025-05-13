@@ -15,5 +15,6 @@
   "okButton": "OK",
   "howToUse": "アプリの使い方",
   "homeScreenTitle": "タスクのチェック",
-  "settingsScreenTitle": "タスクの登録・編集"
+  "settingsScreenTitle": "タスクの登録・編集",
+  "noTaskMessage": "タスクが登録されていません。\n右上の設定アイコンからタスクを追加してください。"
 }

@@ -56,13 +56,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   // タスクリストを追加
-  final List<Task> _tasks = [
-    Task('歯を磨く', period: TaskPeriod.daily),
-    Task('顔を洗う', period: TaskPeriod.daily),
-    Task('朝食を食べる', period: TaskPeriod.daily),
-    Task('準備をする', period: TaskPeriod.daily),
-    // 追加でweeklyやmonthlyのタスクがあれば、それらも明示的に期間を指定
-  ];
+  final List<Task> _tasks = [];
 
   Timer? _checkTimer;
 
@@ -308,6 +302,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     final monthlyTasks =
         _tasks.where((task) => task.period == TaskPeriod.monthly).toList();
 
+    final isAllEmpty =
+        dailyTasks.isEmpty && weeklyTasks.isEmpty && monthlyTasks.isEmpty;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -317,38 +314,53 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         ),
         toolbarHeight: 44.0,
         actions: [
-          // 設定アイコンのみ残す（情報アイコンを削除）
           IconButton(
             icon: const Icon(Icons.settings, color: Colors.black),
             onPressed: _openSettings,
           ),
-          // 情報アイコンは削除
         ],
       ),
-      body: ListView(
-        children: [
-          // 毎日のタスクセクション
-          if (dailyTasks.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            _buildSectionHeader(AppLocalizations.of(context)!.dailyTask),
-            ...dailyTasks.map((task) => _buildTaskItem(task)),
-          ],
-
-          // 毎週のタスクセクション
-          if (weeklyTasks.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            _buildSectionHeader(AppLocalizations.of(context)!.weeklyTask),
-            ...weeklyTasks.map((task) => _buildTaskItem(task)),
-          ],
-
-          // 毎月のタスクセクション
-          if (monthlyTasks.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            _buildSectionHeader(AppLocalizations.of(context)!.monthlyTask),
-            ...monthlyTasks.map((task) => _buildTaskItem(task)),
-          ],
-        ],
-      ),
+      body:
+          isAllEmpty
+              ? Align(
+                alignment: const Alignment(0, -0.5), // 画面中央よりやや上
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Text(
+                    AppLocalizations.of(context)!.noTaskMessage,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[800], // 指定通り
+                    ),
+                  ),
+                ),
+              )
+              : ListView(
+                children: [
+                  if (dailyTasks.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    _buildSectionHeader(
+                      AppLocalizations.of(context)!.dailyTask,
+                    ),
+                    ...dailyTasks.map((task) => _buildTaskItem(task)),
+                  ],
+                  if (weeklyTasks.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    _buildSectionHeader(
+                      AppLocalizations.of(context)!.weeklyTask,
+                    ),
+                    ...weeklyTasks.map((task) => _buildTaskItem(task)),
+                  ],
+                  if (monthlyTasks.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    _buildSectionHeader(
+                      AppLocalizations.of(context)!.monthlyTask,
+                    ),
+                    ...monthlyTasks.map((task) => _buildTaskItem(task)),
+                  ],
+                ],
+              ),
     );
   }
 

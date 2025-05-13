@@ -15,5 +15,6 @@
   "okButton": "OK",
   "howToUse": "How to Use",
   "homeScreenTitle": "Task Checklist",
-  "settingsScreenTitle": "Task Management"
+  "settingsScreenTitle": "Task Management",
+  "noTaskMessage": "No tasks have been registered.\nTap the settings icon at the top right to add a task."
 }
